@@ -6,6 +6,7 @@ import { Users, TrendingUp, RefreshCw } from 'lucide-react';
 import StatusBadge from '../../components/common/StatusBadge';
 import Button from '../../components/common/Button';
 import { PageLoader, PageError } from '../../components/common/PageLoader';
+import { dashboardAPI } from '../../utils/apiHelper';
 
 export default function Dashboard() {
   const [loading, setLoading] = useState(true);
@@ -14,23 +15,17 @@ export default function Dashboard() {
 
   useEffect(() => { fetchDashboardData(); }, []);
 
-  const fetchDashboardData = async () => {
-    setLoading(true); setError(null);
-    try {
-      const token    = localStorage.getItem('accessToken');
-      const API_URL  = import.meta.env.VITE_API_URL || 'http://localhost:7000';
-      const response = await fetch(`${API_URL}/admin/dashboard/statistics`, {
-        method: 'GET',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-      });
-      if (!response.ok) throw new Error('Failed to fetch dashboard data');
-      setStats(await response.json());
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+ const fetchDashboardData = async () => {
+  setLoading(true); setError(null);
+  try {
+    const data = await dashboardAPI.getStatistics();
+    setStats(data);
+  } catch (err) {
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   if (loading) return <PageLoader text="Loading dashboard..." />;
   if (error)   return <PageError message={error} onRetry={fetchDashboardData} />;

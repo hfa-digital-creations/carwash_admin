@@ -16,13 +16,19 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [admin, setAdmin] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [authLoading, setAuthLoading] = useState(true); // ✅ NEW — initial auth check
+  const [authLoading, setAuthLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const API_URL = 'http://localhost:7000/admin';
+  const API_URL = `${import.meta.env.VITE_API_URL}/admin`;
 
-  // ✅ Refresh பண்ணும்போது localStorage check — authLoading false ஆனதும் மட்டும் render
+  // ✅ Common headers — ngrok warning bypass
+  const getHeaders = (token = null) => ({
+    'Content-Type': 'application/json',
+    'ngrok-skip-browser-warning': 'true',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  });
+
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
     const adminData = localStorage.getItem('adminData');
@@ -32,7 +38,7 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(true);
     }
 
-    setAuthLoading(false); // ✅ check முடிந்தது
+    setAuthLoading(false);
   }, []);
 
   // Login
@@ -42,7 +48,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await fetch(`${API_URL}/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({ email, password }),
       });
       const data = await response.json();
@@ -70,7 +76,7 @@ export const AuthProvider = ({ children }) => {
       if (token) {
         await fetch(`${API_URL}/logout`, {
           method: 'POST',
-          headers: { Authorization: `Bearer ${token}` },
+          headers: getHeaders(token),
         });
       }
     } catch (err) {
@@ -89,7 +95,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const token = localStorage.getItem('accessToken');
       const response = await fetch(`${API_URL}/profile`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: getHeaders(token),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Failed to fetch profile');
@@ -109,10 +115,7 @@ export const AuthProvider = ({ children }) => {
       const token = localStorage.getItem('accessToken');
       const response = await fetch(`${API_URL}/change-password`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: getHeaders(token),
         body: JSON.stringify({ currentPassword, newPassword }),
       });
       const data = await response.json();
@@ -129,7 +132,7 @@ export const AuthProvider = ({ children }) => {
       const refreshToken = localStorage.getItem('refreshToken');
       const response = await fetch(`${API_URL}/refresh-token`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({ refreshToken }),
       });
       const data = await response.json();
@@ -154,7 +157,7 @@ export const AuthProvider = ({ children }) => {
   const value = {
     admin,
     isAuthenticated,
-    authLoading, // ✅ export
+    authLoading,
     loading,
     error,
     login,

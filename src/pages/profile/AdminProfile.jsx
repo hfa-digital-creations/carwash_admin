@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { adminAPI } from '../../utils/apiHelper';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -78,26 +79,21 @@ export default function AdminProfile() {
     confirmPassword: '',
   });
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const token = localStorage.getItem('accessToken');
-        const response = await fetch(`${API_BASE_URL}/admin/profile`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.message || 'Failed to load profile');
-        const a = data.admin || data;
-        setProfile(a);
-        setFullName(a.fullName || '');
-        setProfilePhoto(a.profilePhoto || '');
-      } catch (err) {
-        setProfileAlert({ type: 'error', message: err.message });
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
+ useEffect(() => {
+  (async () => {
+    try {
+      const data = await adminAPI.getProfile();
+      const a = data.admin || data;
+      setProfile(a);
+      setFullName(a.fullName || '');
+      setProfilePhoto(a.profilePhoto || '');
+    } catch (err) {
+      setProfileAlert({ type: 'error', message: err.message });
+    } finally {
+      setLoading(false);
+    }
+  })();
+}, []);
 
   // ✅ File select → preview only, file object save
   const handlePhotoUpload = (file) => {
