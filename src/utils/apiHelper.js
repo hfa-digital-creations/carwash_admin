@@ -400,18 +400,38 @@ export const serviceRequestAPI = {
     if (filters.page)   params.append('page',   filters.page);
     if (filters.limit)  params.append('limit',  filters.limit);
     const qs = params.toString();
-    // ⭐ Fixed: was '/service/admin/all' — now correct
     return apiCall(qs ? `/service-booking/admin/all?${qs}` : '/service-booking/admin/all');
   },
 
   getRequestById: (id) =>
-    // ⭐ Fixed: was '/service-booking/${id}' inconsistent
     apiCall(`/service-booking/${id}`),
 
-  // ⭐ Approve only — backend auto-notifies the technician chosen at booking time
-  // No assignment needed for service (technician already selected by customer)
+  // ⭐ Approve only — backend auto-notifies technician
   approveRequest: (id) =>
     apiCall(`/service-booking/admin/${id}/approve`, { method: 'PUT' }),
+};
+
+// ==================== NOTIFICATION APIs ====================
+export const notificationAPI = {
+  // Get all notifications (latest 50)
+  getAll: (page = 1, limit = 50) =>
+    apiCall(`/admin/notifications?page=${page}&limit=${limit}`),
+
+  // Just the unread badge count
+  getUnreadCount: () =>
+    apiCall('/admin/notifications/unread-count'),
+
+  // Mark one as read
+  markRead: (id) =>
+    apiCall(`/admin/notifications/${id}/read`, { method: 'PUT' }),
+
+  // Mark all as read
+  markAllRead: () =>
+    apiCall('/admin/notifications/mark-all-read', { method: 'PUT' }),
+
+  // Delete one
+  delete: (id) =>
+    apiCall(`/admin/notifications/${id}`, { method: 'DELETE' }),
 };
 
 // ==================== SETTINGS APIs ====================
@@ -460,5 +480,6 @@ export default {
   bookingAPI,
   orderAPI,
   serviceRequestAPI,
+  notificationAPI,    // ⭐ new
   settingsAPI,
 };
