@@ -41,12 +41,13 @@ import Vouchers from './pages/vouchers/Vouchers';
 import Settings from './pages/settings/Settings';
 
 import AdminProfile from './pages/profile/AdminProfile';
+import Referrals from './pages/referrals/Referrals';
 
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        {/* ✅ ஒரே ஒரு ToastContainer — எல்லா pages-லும் work ஆகும் */}
+        {}
         <ToastContainer
           position="top-right"
           autoClose={3000}
@@ -92,6 +93,8 @@ function App() {
             <Route path="settings" element={<Settings />} />
 
             <Route path="profile" element={<AdminProfile />} />
+
+            <Route path="referrals" element={<Referrals />} />
 
             {/* Catch all */}
             <Route path="*" element={<Navigate to="/" replace />} />

@@ -5,7 +5,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
   Home, Users, ShoppingCart, Package, Wrench, 
-  TicketPercent, Settings, X 
+  TicketPercent, Settings, Users2, X 
 } from 'lucide-react';
 
 const menuItems = [
@@ -15,6 +15,7 @@ const menuItems = [
   { path: '/inventory', label: 'Inventory', icon: Package },
   { path: '/services', label: 'Services', icon: Wrench },
   { path: '/vouchers', label: 'Vouchers', icon: TicketPercent },
+  { path: '/referrals', label: 'Referrals', icon: Users2 },
   { path: '/settings', label: 'Settings', icon: Settings },
 ];
 

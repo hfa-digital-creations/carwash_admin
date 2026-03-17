@@ -469,6 +469,41 @@ export const dashboardAPI = {
     apiCall(`/admin/dashboard/analytics?period=${period}`),
 };
 
+// ==================== REFERRAL MANAGEMENT APIs ====================
+export const referralAPI = {
+  // Admin
+  getAllReferrals: (filters = {}) => {
+    const params = new URLSearchParams();
+    if (filters.status) params.append('status', filters.status);
+    if (filters.type) params.append('type', filters.type);
+    if (filters.page) params.append('page', filters.page);
+    if (filters.limit) params.append('limit', filters.limit);
+
+    const qs = params.toString();
+    return apiCall(qs ? `/referral/admin/all?${qs}` : '/referral/admin/all');
+  },
+
+  getStats: () => apiCall('/referral/admin/stats'),
+
+  approveCustomer: (id, data) =>
+    apiCall(`/referral/admin/${id}/approve-customer`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  approvePartner: (id, data) =>
+    apiCall(`/referral/admin/${id}/approve-partner`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  rejectReferral: (id, note) =>
+    apiCall(`/referral/admin/${id}/reject`, {
+      method: 'POST',
+      body: JSON.stringify({ adminNote: note }),
+    }),
+};
+
 export default {
   adminAPI,
   adminRegisterAPI,
@@ -482,4 +517,5 @@ export default {
   serviceRequestAPI,
   notificationAPI,    // ⭐ new
   settingsAPI,
+  referralAPI,
 };
