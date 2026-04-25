@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle, XCircle, ArrowLeft, Users, UserCheck } from 'lucide-react';
-import Button from '../../components/common/Button';
+import { CheckCircle, XCircle, Users, UserCheck } from 'lucide-react';
 import { PageLoader } from '../../components/common/PageLoader';
 import { referralAPI } from '../../utils/apiHelper';
 
 export default function Referrals() {
-  const [referrals,     setReferrals]     = useState([]);
-  const [loading,       setLoading]       = useState(true);
-  const [error,         setError]         = useState(null);
-  const [filterStatus,  setFilterStatus]  = useState('');
-  const [filterType,    setFilterType]    = useState('');
+  const [referrals,    setReferrals]    = useState([]);
+  const [loading,      setLoading]      = useState(true);
+  const [error,        setError]        = useState(null);
+  const [filterStatus, setFilterStatus] = useState('');
+  const [filterType,   setFilterType]   = useState('');
 
   useEffect(() => { fetchReferrals(); }, [filterStatus, filterType]);
 
@@ -27,7 +26,7 @@ export default function Referrals() {
 
   const handleApprove = async (ref) => {
     try {
-      if (ref.type === 'customer') {
+      if (ref.referrerType === 'Customer') {
         await referralAPI.approveCustomer(ref._id, {
           couponDetails: { discountType: 'Fixed', discountValue: 100, validDays: 30 },
         });
@@ -47,9 +46,10 @@ export default function Referrals() {
 
   const getStatusBadge = (status) => {
     const map = {
-      pending:  'bg-yellow-100 text-yellow-700',
-      approved: 'bg-green-100  text-green-700',
-      rejected: 'bg-red-100    text-red-600',
+      Pending:   'bg-yellow-100 text-yellow-700',
+      Qualified: 'bg-blue-100   text-blue-700',
+      Approved:  'bg-green-100  text-green-700',
+      Rejected:  'bg-red-100    text-red-600',
     };
     return (
       <span className={`px-2 py-1 rounded text-xs font-medium capitalize ${map[status] || 'bg-gray-100 text-gray-600'}`}>
@@ -60,8 +60,8 @@ export default function Referrals() {
 
   const getTypeBadge = (type) => (
     <span className={`px-2 py-1 rounded text-xs font-medium capitalize flex items-center gap-1 w-fit
-      ${type === 'customer' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
-      {type === 'customer' ? <Users className="w-3 h-3" /> : <UserCheck className="w-3 h-3" />}
+      ${type === 'Customer' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+      {type === 'Customer' ? <Users className="w-3 h-3" /> : <UserCheck className="w-3 h-3" />}
       {type}
     </span>
   );
@@ -79,7 +79,7 @@ export default function Referrals() {
       {/* Filters */}
       <div className="mb-6 space-y-3">
         <div className="flex gap-2 flex-wrap">
-          {[['', 'All Status'], ['pending', 'Pending'], ['approved', 'Approved'], ['rejected', 'Rejected']].map(([val, label]) => (
+          {[['', 'All Status'], ['Pending', 'Pending'], ['Qualified', 'Qualified'], ['Approved', 'Approved'], ['Rejected', 'Rejected']].map(([val, label]) => (
             <button key={val} onClick={() => setFilterStatus(val)}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${filterStatus === val ? 'bg-[#FF6B1A] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
               {label}
@@ -114,33 +114,33 @@ export default function Referrals() {
                   <div key={ref._id} className="p-4 space-y-3">
                     <div className="flex items-start justify-between">
                       <div>
-                        <p className="font-semibold text-gray-900">{ref.referredUser?.name || 'N/A'}</p>
-                        <p className="text-sm text-gray-500">{ref.referredUser?.phone || ref.referredUser?.email || '—'}</p>
+                        <p className="font-semibold text-gray-900">{ref.referredId?.fullName || 'N/A'}</p>
+                        <p className="text-sm text-gray-500">{ref.referredId?.phoneNumber || ref.referredId?.email || '—'}</p>
                       </div>
                       {getStatusBadge(ref.status)}
                     </div>
 
                     <div className="flex flex-wrap gap-2 text-sm">
-                      {getTypeBadge(ref.type)}
-                      {ref.referredBy?.name && (
+                      {getTypeBadge(ref.referrerType)}
+                      {ref.referrerId?.fullName && (
                         <span className="text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded">
-                          Referred by: <span className="font-medium text-gray-700">{ref.referredBy.name}</span>
+                          Referred by: <span className="font-medium text-gray-700">{ref.referrerId.fullName}</span>
                         </span>
                       )}
                     </div>
 
-                    {ref.type === 'customer' && ref.couponDetails && (
-                      <div className="text-xs text-gray-500 bg-green-50 px-2 py-1 rounded">
-                        Coupon: ₹{ref.couponDetails.discountValue} off · {ref.couponDetails.validDays} days
+                    {ref.couponCode && (
+                      <div className="text-xs text-green-700 bg-green-50 px-2 py-1 rounded">
+                        Coupon: {ref.couponCode}
                       </div>
                     )}
-                    {ref.type === 'partner' && ref.payoutAmount && (
-                      <div className="text-xs text-gray-500 bg-purple-50 px-2 py-1 rounded">
-                        Payout: ₹{ref.payoutAmount}
+                    {ref.payoutAmount > 0 && (
+                      <div className="text-xs text-purple-700 bg-purple-50 px-2 py-1 rounded">
+                        Payout: ₹{ref.payoutAmount} — {ref.payoutStatus}
                       </div>
                     )}
 
-                    {ref.status === 'pending' && (
+                    {ref.status === 'Qualified' && (
                       <div className="flex gap-2 pt-1">
                         <button onClick={() => handleApprove(ref)}
                           className="flex-1 flex items-center justify-center gap-1 text-green-600 bg-green-50 hover:bg-green-100 py-2 rounded-lg text-sm font-medium transition-colors">
@@ -174,19 +174,19 @@ export default function Referrals() {
                     {referrals.map((ref) => (
                       <tr key={ref._id} className="hover:bg-gray-50">
                         <td className="px-4 py-3">
-                          <p className="font-medium text-gray-900">{ref.referredUser?.name || 'N/A'}</p>
-                          <p className="text-xs text-gray-500">{ref.referredUser?.phone || ref.referredUser?.email || '—'}</p>
+                          <p className="font-medium text-gray-900">{ref.referredId?.fullName || 'N/A'}</p>
+                          <p className="text-xs text-gray-500">{ref.referredId?.phoneNumber || ref.referredId?.email || '—'}</p>
                         </td>
                         <td className="px-4 py-3">
-                          <p className="text-sm text-gray-700">{ref.referredBy?.name || '—'}</p>
-                          <p className="text-xs text-gray-500">{ref.referredBy?.phone || ''}</p>
+                          <p className="text-sm text-gray-700">{ref.referrerId?.fullName || '—'}</p>
+                          <p className="text-xs text-gray-500">{ref.referrerId?.phoneNumber || ''}</p>
                         </td>
-                        <td className="px-4 py-3">{getTypeBadge(ref.type)}</td>
-                        <td className="px-4 py-3 text-sm text-gray-600">
-                          {ref.type === 'customer' && ref.couponDetails
-                            ? <span className="text-green-700 font-medium">₹{ref.couponDetails.discountValue} coupon</span>
-                            : ref.type === 'partner' && ref.payoutAmount
-                            ? <span className="text-purple-700 font-medium">₹{ref.payoutAmount} payout</span>
+                        <td className="px-4 py-3">{getTypeBadge(ref.referrerType)}</td>
+                        <td className="px-4 py-3 text-sm">
+                          {ref.couponCode
+                            ? <span className="text-green-700 font-medium">Coupon: {ref.couponCode}</span>
+                            : ref.payoutAmount > 0
+                            ? <span className="text-purple-700 font-medium">₹{ref.payoutAmount} — {ref.payoutStatus}</span>
                             : <span className="text-gray-400">—</span>
                           }
                         </td>
@@ -195,7 +195,7 @@ export default function Referrals() {
                           {ref.createdAt ? new Date(ref.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
                         </td>
                         <td className="px-4 py-3">
-                          {ref.status === 'pending' && (
+                          {ref.status === 'Qualified' && (
                             <div className="flex gap-2">
                               <button onClick={() => handleApprove(ref)}
                                 className="text-green-600 hover:text-green-700 hover:bg-green-50 p-2 rounded-lg transition-colors" title="Approve">
